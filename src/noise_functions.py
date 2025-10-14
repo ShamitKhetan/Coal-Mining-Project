@@ -18,7 +18,7 @@ def apply_bias(values, bias_value):
     return values + bias_value
 
 
-def apply_drift(values, drift_rate, drift_type="random_walk"):
+def apply_drift(values, drift_rate, drift_type="random_walk", max_drift=None):
     """
     Apply sensor drift over time.
     
@@ -26,6 +26,7 @@ def apply_drift(values, drift_rate, drift_type="random_walk"):
         values: Array of sensor values
         drift_rate: Rate of drift
         drift_type: Type of drift ("random_walk", "sinusoidal", or "linear")
+        max_drift: Maximum absolute drift value to clip to (None for no clipping)
     """
     if drift_type == "random_walk":
         drift = np.cumsum(np.random.normal(0, drift_rate, len(values)))
@@ -33,6 +34,11 @@ def apply_drift(values, drift_rate, drift_type="random_walk"):
         drift = drift_rate * np.sin(np.linspace(0, 4*np.pi, len(values)))
     else:  # linear
         drift = drift_rate * np.linspace(0, 1, len(values))
+    
+    # Clip drift to max_drift if specified
+    if max_drift is not None:
+        drift = np.clip(drift, -max_drift, max_drift)
+    
     return values + drift
 
 
@@ -131,7 +137,7 @@ def apply_noise_to_feature(values, feature_name, noise_config, features, df_full
         values = apply_bias(values, cfg["bias"]["value"])
     
     if cfg.get("drift", {}).get("enabled", False):
-        values = apply_drift(values, cfg["drift"]["rate"], cfg["drift"].get("type", "random_walk"))
+        values = apply_drift(values, cfg["drift"]["rate"], cfg["drift"].get("type", "random_walk"), cfg["drift"].get("max_drift"))
 
     # Clip to valid range
     values = np.clip(values, min_val, max_val)

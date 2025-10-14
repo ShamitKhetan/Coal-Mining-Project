@@ -9,122 +9,117 @@ from pathlib import Path
 # Default noise configuration template
 DEFAULT_NOISE_CONFIG = {
     "CH4": {
-        "gaussian_noise": {"enabled": True, "std_dev": 0.05},
-        "bias": {"enabled": True, "value": 0.02},
-        "drift": {"enabled": True, "rate": 0.01, "type": "random_walk"},
+        "gaussian_noise": {"enabled": True, "std_dev": 0.01},
+        "bias": {"enabled": True, "value": 0.01},
+        "drift": {"enabled": True, "rate": 0.002, "type": "random_walk", "max_drift": 0.5},
         "quantization": {"enabled": True, "resolution": 0.01},
-        "outliers": {"enabled": True, "probability": 0.01, "magnitude": 3.0},
-        "missing_data": {
-            "enabled": True, 
-            "probability": 0.005,
-            "mechanism": "MCAR",
-            "auxiliary_feature": None
-        },
-        "invalid_values": {"enabled": True, "probability": 0.003}
+        "outliers": {"enabled": True, "probability": 0.005, "magnitude": 4.0},
+        "missing_data": {"enabled": True, "probability": 0.003, "mechanism": "MCAR", "auxiliary_feature": None},
+        "invalid_values": {"enabled": True, "probability": 0.001}
     },
     "CO": {
-        "gaussian_noise": {"enabled": True, "std_dev": 2.0},
-        "bias": {"enabled": True, "value": 1.5},
-        "drift": {"enabled": True, "rate": 0.5, "type": "random_walk"},
+        "gaussian_noise": {"enabled": True, "std_dev": 1.0},
+        "bias": {"enabled": True, "value": 0.5},
+        "drift": {"enabled": True, "rate": 0.01, "type": "random_walk", "max_drift": 5.0},
         "quantization": {"enabled": True, "resolution": 1.0},
-        "outliers": {"enabled": True, "probability": 0.01, "magnitude": 3.0},
-        "missing_data": {"enabled": True, "probability": 0.005, "mechanism": "MAR", "auxiliary_feature": "Temperature"},
-        "invalid_values": {"enabled": True, "probability": 0.003}
+        "outliers": {"enabled": True, "probability": 0.005, "magnitude": 4.0},
+        "missing_data": {"enabled": True, "probability": 0.01, "mechanism": "MAR", "auxiliary_feature": "Temperature"},
+        "invalid_values": {"enabled": True, "probability": 0.0015}
     },
     "CO2": {
-        "gaussian_noise": {"enabled": True, "std_dev": 50.0},
-        "bias": {"enabled": True, "value": 20.0},
-        "drift": {"enabled": True, "rate": 10.0, "type": "random_walk"},
-        "quantization": {"enabled": True, "resolution": 10.0},
-        "outliers": {"enabled": True, "probability": 0.01, "magnitude": 3.0},
-        "missing_data": {"enabled": True, "probability": 0.005, "mechanism": "MNAR", "auxiliary_feature": None},
-        "invalid_values": {"enabled": True, "probability": 0.003}
+        "gaussian_noise": {"enabled": True, "std_dev": 30.0},
+        "bias": {"enabled": True, "value": 10.0},
+        "drift": {"enabled": True, "rate": 0.5, "type": "random_walk", "max_drift": 50.0},
+        "quantization": {"enabled": True, "resolution": 1.0},
+        "outliers": {"enabled": True, "probability": 0.004, "magnitude": 3.0},
+        "missing_data": {"enabled": True, "probability": 0.003, "mechanism": "MNAR", "auxiliary_feature": None},
+        "invalid_values": {"enabled": True, "probability": 0.001}
     },
     "H2S": {
-        "gaussian_noise": {"enabled": True, "std_dev": 0.5},
-        "bias": {"enabled": True, "value": 0.3},
-        "drift": {"enabled": True, "rate": 0.1, "type": "random_walk"},
-        "quantization": {"enabled": True, "resolution": 0.1},
-        "outliers": {"enabled": True, "probability": 0.01, "magnitude": 3.0},
-        "missing_data": {"enabled": True, "probability": 0.005, "mechanism": "MCAR", "auxiliary_feature": None},
-        "invalid_values": {"enabled": True, "probability": 0.003}
-    },
-    "SO2": {
         "gaussian_noise": {"enabled": True, "std_dev": 0.2},
         "bias": {"enabled": True, "value": 0.1},
-        "drift": {"enabled": True, "rate": 0.05, "type": "random_walk"},
+        "drift": {"enabled": True, "rate": 0.02, "type": "random_walk", "max_drift": 0.5},
         "quantization": {"enabled": True, "resolution": 0.1},
-        "outliers": {"enabled": True, "probability": 0.01, "magnitude": 3.0},
-        "missing_data": {"enabled": True, "probability": 0.005, "mechanism": "MAR", "auxiliary_feature": "Humidity"},
-        "invalid_values": {"enabled": True, "probability": 0.003}
+        "outliers": {"enabled": True, "probability": 0.004, "magnitude": 4.0},
+        "missing_data": {"enabled": True, "probability": 0.003, "mechanism": "MCAR", "auxiliary_feature": None},
+        "invalid_values": {"enabled": True, "probability": 0.001}
+    },
+    "SO2": {
+        "gaussian_noise": {"enabled": True, "std_dev": 0.08},
+        "bias": {"enabled": True, "value": 0.05},
+        "drift": {"enabled": True, "rate": 0.01, "type": "random_walk", "max_drift": 0.05},
+        "quantization": {"enabled": True, "resolution": 0.1},
+        "outliers": {"enabled": True, "probability": 0.004, "magnitude": 4.0},
+        "missing_data": {"enabled": True, "probability": 0.003, "mechanism": "MAR", "auxiliary_feature": "Humidity"},
+        "invalid_values": {"enabled": True, "probability": 0.001}
     },
     "NH3": {
-        "gaussian_noise": {"enabled": True, "std_dev": 1.0},
-        "bias": {"enabled": True, "value": 0.5},
-        "drift": {"enabled": True, "rate": 0.2, "type": "random_walk"},
+        "gaussian_noise": {"enabled": True, "std_dev": 0.6},
+        "bias": {"enabled": True, "value": 0.25},
+        "drift": {"enabled": True, "rate": 0.02, "type": "random_walk", "max_drift": 1.0},
         "quantization": {"enabled": True, "resolution": 0.5},
-        "outliers": {"enabled": True, "probability": 0.01, "magnitude": 3.0},
-        "missing_data": {"enabled": True, "probability": 0.005, "mechanism": "MNAR", "auxiliary_feature": None},
-        "invalid_values": {"enabled": True, "probability": 0.003}
+        "outliers": {"enabled": True, "probability": 0.004, "magnitude": 4.0},
+        "missing_data": {"enabled": True, "probability": 0.003, "mechanism": "MNAR", "auxiliary_feature": None},
+        "invalid_values": {"enabled": True, "probability": 0.001}
     },
     "NO": {
-        "gaussian_noise": {"enabled": True, "std_dev": 1.0},
-        "bias": {"enabled": True, "value": 0.5},
-        "drift": {"enabled": True, "rate": 0.2, "type": "random_walk"},
+        "gaussian_noise": {"enabled": True, "std_dev": 0.6},
+        "bias": {"enabled": True, "value": 0.25},
+        "drift": {"enabled": True, "rate": 0.02, "type": "random_walk", "max_drift": 1.0},
         "quantization": {"enabled": True, "resolution": 0.5},
-        "outliers": {"enabled": True, "probability": 0.01, "magnitude": 3.0},
-        "missing_data": {"enabled": True, "probability": 0.005, "mechanism": "MCAR", "auxiliary_feature": None},
-        "invalid_values": {"enabled": True, "probability": 0.003}
+        "outliers": {"enabled": True, "probability": 0.004, "magnitude": 4.0},
+        "missing_data": {"enabled": True, "probability": 0.003, "mechanism": "MCAR", "auxiliary_feature": None},
+        "invalid_values": {"enabled": True, "probability": 0.001}
     },
     "NO2": {
-        "gaussian_noise": {"enabled": True, "std_dev": 0.3},
-        "bias": {"enabled": True, "value": 0.2},
-        "drift": {"enabled": True, "rate": 0.08, "type": "random_walk"},
-        "quantization": {"enabled": True, "resolution": 0.1},
-        "outliers": {"enabled": True, "probability": 0.01, "magnitude": 3.0},
+        "gaussian_noise": {"enabled": True, "std_dev": 0.12},
+        "bias": {"enabled": True, "value": 0.08},
+        "drift": {"enabled": True, "rate": 0.01, "type": "random_walk", "max_drift": 0.3},
+        "quantization": {"enabled": True, "resolution": 0.05},
+        "outliers": {"enabled": True, "probability": 0.004, "magnitude": 4.0},
         "missing_data": {"enabled": True, "probability": 0.005, "mechanism": "MAR", "auxiliary_feature": "Temperature"},
-        "invalid_values": {"enabled": True, "probability": 0.003}
+        "invalid_values": {"enabled": True, "probability": 0.001}
     },
     "PM2.5": {
-        "gaussian_noise": {"enabled": True, "std_dev": 5.0},
-        "bias": {"enabled": True, "value": 2.0},
-        "drift": {"enabled": True, "rate": 1.0, "type": "random_walk"},
+        "gaussian_noise": {"enabled": True, "std_dev": 3.0},
+        "bias": {"enabled": True, "value": 1.0},
+        "drift": {"enabled": True, "rate": 0.3, "type": "random_walk", "max_drift": 6.0},
         "quantization": {"enabled": True, "resolution": 1.0},
-        "outliers": {"enabled": True, "probability": 0.01, "magnitude": 3.0},
-        "missing_data": {"enabled": True, "probability": 0.005, "mechanism": "MNAR", "auxiliary_feature": None},
-        "invalid_values": {"enabled": True, "probability": 0.003}
+        "outliers": {"enabled": True, "probability": 0.02, "magnitude": 10.0},
+        "missing_data": {"enabled": True, "probability": 0.01, "mechanism": "MNAR", "auxiliary_feature": None},
+        "invalid_values": {"enabled": True, "probability": 0.002}
     },
     "PM10": {
-        "gaussian_noise": {"enabled": True, "std_dev": 10.0},
-        "bias": {"enabled": True, "value": 5.0},
-        "drift": {"enabled": True, "rate": 2.0, "type": "random_walk"},
+        "gaussian_noise": {"enabled": True, "std_dev": 6.0},
+        "bias": {"enabled": True, "value": 2.0},
+        "drift": {"enabled": True, "rate": 0.5, "type": "random_walk", "max_drift": 10.0},
         "quantization": {"enabled": True, "resolution": 1.0},
-        "outliers": {"enabled": True, "probability": 0.01, "magnitude": 3.0},
-        "missing_data": {"enabled": True, "probability": 0.005, "mechanism": "MCAR", "auxiliary_feature": None},
-        "invalid_values": {"enabled": True, "probability": 0.003}
+        "outliers": {"enabled": True, "probability": 0.02, "magnitude": 10.0},
+        "missing_data": {"enabled": True, "probability": 0.01, "mechanism": "MCAR", "auxiliary_feature": None},
+        "invalid_values": {"enabled": True, "probability": 0.002}
     },
     "Temperature": {
-        "gaussian_noise": {"enabled": True, "std_dev": 0.5},
-        "bias": {"enabled": True, "value": 0.3},
-        "drift": {"enabled": True, "rate": 0.1, "type": "random_walk"},
+        "gaussian_noise": {"enabled": True, "std_dev": 0.2},
+        "bias": {"enabled": True, "value": 0.1},
+        "drift": {"enabled": True, "rate": 0.01, "type": "random_walk", "max_drift": 0.8},
         "quantization": {"enabled": True, "resolution": 0.1},
-        "outliers": {"enabled": True, "probability": 0.005, "magnitude": 2.0},
+        "outliers": {"enabled": True, "probability": 0.002, "magnitude": 2.0},
         "missing_data": {"enabled": True, "probability": 0.003, "mechanism": "MAR", "auxiliary_feature": "Humidity"},
-        "invalid_values": {"enabled": True, "probability": 0.002}
+        "invalid_values": {"enabled": True, "probability": 0.001}
     },
     "Humidity": {
-        "gaussian_noise": {"enabled": True, "std_dev": 2.0},
-        "bias": {"enabled": True, "value": 1.0},
-        "drift": {"enabled": True, "rate": 0.5, "type": "random_walk"},
-        "quantization": {"enabled": True, "resolution": 1.0},
-        "outliers": {"enabled": True, "probability": 0.005, "magnitude": 2.0},
+        "gaussian_noise": {"enabled": True, "std_dev": 1.0},
+        "bias": {"enabled": True, "value": 0.5},
+        "drift": {"enabled": True, "rate": 0.02, "type": "random_walk", "max_drift": 1.0},
+        "quantization": {"enabled": True, "resolution": 0.1},
+        "outliers": {"enabled": True, "probability": 0.002, "magnitude": 2.0},
         "missing_data": {"enabled": True, "probability": 0.003, "mechanism": "MNAR", "auxiliary_feature": None},
-        "invalid_values": {"enabled": True, "probability": 0.002}
+        "invalid_values": {"enabled": True, "probability": 0.001}
     },
     "global": {
         "stuck_values": {
             "enabled": True,
-            "probability": 0.002,
+            "probability": 0.001,
             "duration": 5
         }
     }
