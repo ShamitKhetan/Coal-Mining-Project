@@ -38,7 +38,7 @@ coal_mine_sensor_simulator/
 │   ├── clean/                     # Clean datasets
 │   └── noisy/                     # Noisy datasets
 │
-├── main.py                        # Main entry point
+├── batch_generator.py             # Batch generator entry point
 ├── requirements.txt               # Python dependencies
 └── README.md                      # This file
 ```
@@ -59,7 +59,7 @@ pip install -r requirements.txt
 Run the simulator:
 
 ```bash
-python main.py
+python batch_generator.py
 ```
 
 This will:
@@ -411,7 +411,7 @@ validate_noise_config(noise_config, features)
 
 1. **Modify Features**: Edit `config/features.json` to add/remove sensors
 2. **Adjust Noise**: Edit `config/noise_config.json` to change noise parameters
-3. **Sample Size**: Change `n_samples` in `main.py`
+3. **Sample Size**: Change `n_samples` in `batch_generator.py`
 4. **Random Seed**: Change `random_state` for reproducibility
 
 ## Dependencies
