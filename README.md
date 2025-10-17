@@ -31,7 +31,8 @@ coal_mine_sensor_simulator/
 │   ├── config_loader.py           # Configuration management
 │   ├── noise_functions.py         # Noise application functions
 │   ├── dataset_generator.py       # Dataset generation logic
-│   └── visualization.py           # Plotting functions
+│   ├── visualization.py           # Plotting functions
+│   └── streaming_simulator.py     # Stateful streaming simulator
 │
 ├── data/
 │   ├── clean/                     # Clean datasets
@@ -67,6 +68,26 @@ This will:
 3. Generate 100,000 samples of noisy data
 4. Save datasets to `data/clean/` and `data/noisy/`
 5. Display statistics and visualizations
+
+## Streaming Generator
+
+Stateful continuous generator that maintain drift and stuck state across ticks.
+
+```bash
+python stream_to_csv.py \
+  --features config/features.json \
+  --noise-config config/noise_config.json \
+  --output data/stream/coal_mine_stream.csv \
+  --interval 1.0 \
+  --batch-size 1 \
+  --random-state 42 \
+  --duration -1
+```
+
+Options:
+- `--max-bytes` rotate file when exceeding size (default 0 = disabled)
+
+The script supports Ctrl+C to stop gracefully.
 
 ## Configuration
 
