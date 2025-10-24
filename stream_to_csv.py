@@ -89,8 +89,13 @@ def main() -> None:
 
             time.sleep(max(0.0, args.interval))
 
-    except:
-        print("Interrupted. Exiting.")
+    except KeyboardInterrupt:
+        print("Interrupted by user. Exiting.")
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        print(f"Error type: {type(e).__name__}")
+        import traceback
+        traceback.print_exc()
 
 
 if __name__ == "__main__":
