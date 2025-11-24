@@ -15,7 +15,12 @@ from typing import Optional
 
 import pandas as pd
 
-from src import load_features_config, load_noise_config
+from src import (
+    load_features_config,
+    load_noise_config,
+    load_scenarios_config,
+    load_correlations_config
+)
 from src.streaming_simulator import StatefulSensorSimulator
 
 
@@ -23,6 +28,9 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Stream sensor data to CSV continuously")
     parser.add_argument("--features", default="config/features.json", help="Path to features config JSON")
     parser.add_argument("--noise-config", default="config/noise_config.json", help="Path to noise config JSON")
+    parser.add_argument("--scenario-config", default="config/scenarios.json", help="Path to scenario config JSON")
+    parser.add_argument("--correlation-config", default="config/correlations.json", help="Path to correlation config JSON")
+    parser.add_argument("--scenario", default="normal", help="Scenario key to simulate")
     parser.add_argument("--output", default="data/stream/coal_mine_stream.csv", help="Output CSV path")
     parser.add_argument("--interval", type=float, default=1.0, help="Seconds between ticks")
     parser.add_argument("--batch-size", type=int, default=1, help="Rows per tick")
@@ -55,8 +63,18 @@ def main() -> None:
 
     features = load_features_config(args.features)
     noise_cfg = load_noise_config(args.noise_config)
+    scenario_cfg = load_scenarios_config(args.scenario_config)
+    correlation_cfg = load_correlations_config(args.correlation_config)
 
-    simulator = StatefulSensorSimulator(features, noise_cfg, random_state=args.random_state)
+    simulator = StatefulSensorSimulator(
+        features,
+        noise_cfg,
+        random_state=args.random_state,
+        scenario=args.scenario,
+        scenario_config=scenario_cfg,
+        correlation_config=correlation_cfg,
+        tick_minutes=max(args.interval / 60.0, 1e-3),
+    )
 
     ensure_parent(args.output)
     fieldnames = ["timestamp", *features.keys()]

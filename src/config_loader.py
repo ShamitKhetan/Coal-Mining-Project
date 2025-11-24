@@ -125,6 +125,72 @@ DEFAULT_NOISE_CONFIG = {
     }
 }
 
+DEFAULT_SCENARIOS_CONFIG = {
+    "normal": {
+        "tick_minutes": 1.0,
+        "diurnal": {
+            "period_minutes": 1440,
+            "temperature_amplitude": 2.5,
+            "humidity_amplitude": 8.0,
+            "humidity_phase_deg": 75
+        }
+    },
+    "ventilation_failure": {
+        "inherits": "normal",
+        "gas_rise_pct_per_hour": 0.08,
+        "temperature_rise_per_hour": 0.15,
+        "humidity_rise_per_hour": -0.04
+    },
+    "methane_leak": {
+        "inherits": "normal",
+        "ch4_spike_value": 3.0,
+        "ch4_rise_minutes": 20,
+        "secondary_gas_gain": 0.08,
+        "pm_gain": 0.25
+    },
+    "combustion": {
+        "inherits": "normal",
+        "co_spike_value": 150.0,
+        "co_rise_minutes": 8,
+        "co2_spike_value": 2500.0,
+        "pm_gain_per_co": 0.6,
+        "temperature_rise_per_hour": 0.4,
+        "humidity_drop_per_hour": 0.8,
+        "nox_gain": 0.45
+    },
+    "dust_event": {
+        "inherits": "normal",
+        "pm_peak": 450.0,
+        "pm_event_duration_minutes": 12,
+        "pm_event_period_minutes": 120,
+        "co_spike": 30.0,
+        "nox_spike": 15.0,
+        "humidity_drop_during_event": 6.0,
+        "temperature_bump_during_event": 0.8
+    }
+}
+
+DEFAULT_CORRELATIONS_CONFIG = {
+    "pairwise": [
+        {"source": "PM10", "target": "PM2.5", "mode": "ratio", "ratio": 0.65, "blend": 0.7},
+        {"source": "PM2.5", "target": "CO", "coeff": 0.25},
+        {"source": "PM2.5", "target": "SO2", "coeff": 0.18},
+        {"source": "PM2.5", "target": "NO2", "coeff": 0.2},
+        {"source": "PM2.5", "target": "NO", "coeff": 0.18},
+        {"source": "NO", "target": "NO2", "coeff": 0.85}
+    ],
+    "humidity_effect": {
+        "threshold": 72.0,
+        "strength": 0.12,
+        "targets": ["PM2.5", "PM10", "CO", "SO2", "NO", "NO2"]
+    },
+    "temperature_effect": {
+        "baseline": 28.0,
+        "strength": -0.08,
+        "targets": ["PM2.5", "PM10", "CO", "SO2", "NO", "NO2"]
+    }
+}
+
 
 def load_features_config(filepath="config/features.json"):
     """Load feature configuration from JSON file."""
@@ -154,6 +220,30 @@ def load_noise_config(filepath="config/noise_config.json"):
         create_default_noise_config(filepath)
     
     with open(filepath, 'r') as f:
+        return json.load(f)
+
+
+def load_scenarios_config(filepath="config/scenarios.json"):
+    """Load scenario configuration from JSON file."""
+    path = Path(filepath)
+    if not path.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, 'w') as f:
+            json.dump(DEFAULT_SCENARIOS_CONFIG, f, indent=4)
+        print(f"Default scenario configuration saved to {filepath}")
+    with open(path, 'r') as f:
+        return json.load(f)
+
+
+def load_correlations_config(filepath="config/correlations.json"):
+    """Load correlation configuration from JSON file."""
+    path = Path(filepath)
+    if not path.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, 'w') as f:
+            json.dump(DEFAULT_CORRELATIONS_CONFIG, f, indent=4)
+        print(f"Default correlation configuration saved to {filepath}")
+    with open(path, 'r') as f:
         return json.load(f)
 
 

@@ -56,10 +56,10 @@ pip install -r requirements.txt
 
 ## Quick Start
 
-Run the simulator:
+Run the simulator (default scenario is `normal`):
 
 ```bash
-python batch_generator.py
+python batch_generator.py --scenario combustion
 ```
 
 This will:
@@ -74,13 +74,16 @@ This will:
 Stateful continuous generator that maintain drift and stuck state across ticks.
 
 ```bash
-python stream_to_csv.py \
-  --features config/features.json \
-  --noise-config config/noise_config.json \
-  --output data/stream/coal_mine_stream.csv \
-  --interval 1.0 \
-  --batch-size 1 \
-  --random-state 42 \
+python stream_to_csv.py ^
+  --features config/features.json ^
+  --noise-config config/noise_config.json ^
+  --scenario-config config/scenarios.json ^
+  --correlation-config config/correlations.json ^
+  --scenario methane_leak ^
+  --output data/stream/coal_mine_stream.csv ^
+  --interval 1.0 ^
+  --batch-size 1 ^
+  --random-state 42 ^
   --duration -1
 ```
 
@@ -137,6 +140,31 @@ Auto-generated on first run. Customize noise parameters for each sensor:
 ```
 
 **Noise Parameters:**
+- `scenario`: choose behaviors such as `normal`, `ventilation_failure`, `methane_leak`, `combustion`, or `dust_event`
+- `scenario-config`: override the scenario parameter file
+- `correlation-config`: customize cross-feature dependencies
+
+### Scenario Configuration (`config/scenarios.json`)
+
+Defines high-level environmental situations. Each scenario inherits defaults from `normal` and then overrides specific dynamics:
+
+- **normal**: includes slow diurnal temperature/humidity cycles
+- **ventilation_failure**: gradual rise in all gases, small temp increase, humidity stagnation
+- **methane_leak**: rapid CH₄ spike with secondary CO₂/PM increases
+- **combustion**: fast CO rise, slower CO₂ build-up, PM tied to CO, temp up, humidity down, NOₓ increases
+- **dust_event**: periodic pulses where PM/CO/NOₓ spike, humidity dips, temperature bumps
+
+Tune the provided parameters (e.g., `gas_rise_pct_per_hour`, `pm_peak`, `ch4_rise_minutes`) or add your own scenario by creating a new key with similar fields.
+
+### Correlation Configuration (`config/correlations.json`)
+
+Controls statistical relationships between sensors:
+
+- `pairwise`: linear or ratio-based adjustments (e.g., enforce PM2.5 as 65% of PM10, NO ↔ NO₂ coupling)
+- `humidity_effect`: when humidity exceeds a threshold, pollutants rise to reflect poor dispersion
+- `temperature_effect`: warmer air reduces pollutant concentrations to mimic improved dispersion
+
+Extend these rules or add new ones to express custom dependencies.
 - `gaussian_noise`: Adds random Gaussian noise with specified standard deviation
 - `bias`: Adds systematic bias offset to sensor readings
 - `drift`: Applies sensor drift over time (random_walk, sinusoidal, linear) with optional `max_drift` clipping
@@ -183,7 +211,7 @@ Validate that noise configuration matches available features and warn about mism
 
 ### Dataset Generation Functions (`src.dataset_generator`)
 
-#### `generate_dataset(features, n_samples=1000, random_state=None, noise_config=None, apply_noise=True)`
+#### `generate_dataset(features, n_samples=1000, random_state=None, noise_config=None, apply_noise=True, *, scenario="normal", scenario_config=None, correlation_config=None)`
 Generate coal mine sensor dataset with optional noise application.
 
 **Parameters:**
@@ -192,6 +220,9 @@ Generate coal mine sensor dataset with optional noise application.
 - `random_state`: Random seed for reproducibility
 - `noise_config`: Noise configuration dictionary
 - `apply_noise`: Whether to apply noise to the dataset (default: True)
+- `scenario`: Scenario key describing macro-behavior (default: "normal")
+- `scenario_config`: Scenario configuration dictionary (see `config/scenarios.json`)
+- `correlation_config`: Correlation configuration dictionary (see `config/correlations.json`)
 
 **Returns:** Pandas DataFrame with generated sensor data
 

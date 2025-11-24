@@ -3,10 +3,14 @@ Main entry point for coal mine sensor simulator.
 Generates clean and noisy datasets with visualization.
 """
 
+import argparse
+
 from src import (
     load_features_config,
     load_noise_config,
     create_default_noise_config,
+    load_scenarios_config,
+    load_correlations_config,
     generate_dataset,
     save_dataset,
     print_dataset_summary,
@@ -14,65 +18,77 @@ from src import (
 )
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Generate coal mine datasets")
+    parser.add_argument("--n-samples", type=int, default=100000, help="Number of rows to generate")
+    parser.add_argument("--random-state", type=int, default=42, help="Random seed")
+    parser.add_argument("--scenario", default="normal", help="Scenario name to simulate")
+    parser.add_argument("--features", default="config/features.json", help="Features config path")
+    parser.add_argument("--noise-config", default="config/noise_config.json", help="Noise config path")
+    parser.add_argument("--scenario-config", default="config/scenarios.json", help="Scenario config path")
+    parser.add_argument("--correlation-config", default="config/correlations.json", help="Correlation config path")
+    parser.add_argument("--clean-output", default="data/clean/coal_mine_data_clean.csv", help="Clean dataset output path")
+    parser.add_argument("--noisy-output", default="data/noisy/coal_mine_data_noisy.csv", help="Noisy dataset output path")
+    return parser.parse_args()
+
+
 def main():
     """Main execution function."""
-    
-    # Configuration
-    n_samples = 100000
-    random_state = 42
-    
+    args = parse_args()
+
     print("Coal Mine Sensor Data Generator")
     print("=" * 60)
-    
-    # Load configurations
+
     print("\nLoading configurations...")
-    features = load_features_config("config/features.json")
+    features = load_features_config(args.features)
     print(f"✓ Loaded {len(features)} features")
-    
-    # Create default noise config if it doesn't exist
-    create_default_noise_config("config/noise_config.json")
-    noise_config = load_noise_config("config/noise_config.json")
-    print("✓ Noise configuration loaded")
-    
-    # Generate clean dataset
-    print("\nGenerating clean dataset...")
+
+    create_default_noise_config(args.noise_config)
+    noise_config = load_noise_config(args.noise_config)
+    scenarios = load_scenarios_config(args.scenario_config)
+    correlations = load_correlations_config(args.correlation_config)
+    print("✓ Scenario and correlation configs loaded")
+
+    print(f"\nGenerating clean dataset (scenario={args.scenario})...")
     df_clean = generate_dataset(
         features=features,
-        n_samples=n_samples,
-        random_state=random_state,
-        apply_noise=False
+        n_samples=args.n_samples,
+        random_state=args.random_state,
+        apply_noise=False,
+        scenario=args.scenario,
+        scenario_config=scenarios,
+        correlation_config=correlations
     )
     print(f"✓ Generated {len(df_clean)} clean samples")
-    
-    # Generate noisy dataset
+
     print("\nGenerating noisy dataset...")
     df_noisy = generate_dataset(
         features=features,
-        n_samples=n_samples,
-        random_state=random_state,
+        n_samples=args.n_samples,
+        random_state=args.random_state,
         noise_config=noise_config,
-        apply_noise=True
+        apply_noise=True,
+        scenario=args.scenario,
+        scenario_config=scenarios,
+        correlation_config=correlations
     )
     print(f"✓ Generated {len(df_noisy)} noisy samples")
-    
-    # Save datasets
+
     print("\nSaving datasets...")
-    save_dataset(df_clean, "data/clean/coal_mine_data_clean.csv")
-    save_dataset(df_noisy, "data/noisy/coal_mine_data_noisy.csv", preserve_strings=True)
+    save_dataset(df_clean, args.clean_output)
+    save_dataset(df_noisy, args.noisy_output, preserve_strings=True)
     print("✓ Datasets saved successfully")
-    
-    # Print summaries
+
     print_dataset_summary(df_clean, "Clean Dataset")
     print_dataset_summary(df_noisy, "Noisy Dataset")
-    
-    # Visualize datasets
+
     print("\nGenerating visualizations...")
     print("Plotting clean dataset distribution...")
     plot_dataset(df_clean, title="Clean Dataset Distribution")
-    
+
     print("Plotting noisy dataset distribution...")
     plot_dataset(df_noisy, title="Noisy Dataset Distribution")
-    
+
     print("\n" + "=" * 60)
     print("Dataset generation complete!")
     print("=" * 60)
@@ -80,5 +96,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-

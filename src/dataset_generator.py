@@ -12,10 +12,20 @@ from .noise_functions import (
     apply_global_stuck_values,
     apply_string_invalid_values
 )
+from .scenario_effects import ScenarioEffects, CorrelationAdjuster
 
 
-def generate_dataset(features, n_samples=1000, random_state=None, 
-                     noise_config=None, apply_noise=True):
+def generate_dataset(
+    features,
+    n_samples=1000,
+    random_state=None,
+    noise_config=None,
+    apply_noise=True,
+    *,
+    scenario="normal",
+    scenario_config=None,
+    correlation_config=None
+):
     """
     Generate coal mine sensor dataset with optional noise.
     
@@ -25,7 +35,9 @@ def generate_dataset(features, n_samples=1000, random_state=None,
         random_state: Random seed for reproducibility
         noise_config: Noise configuration dictionary
         apply_noise: Whether to apply noise to the dataset
-    
+        scenario: Scenario name or type (str), default "normal"
+        scenario_config: Configuration for scenario effects (dict), optional
+        correlation_config: Configuration for feature correlations (dict), optional
     Returns:
         DataFrame with generated sensor data
     """
@@ -51,6 +63,31 @@ def generate_dataset(features, n_samples=1000, random_state=None,
         data[feature] = values
 
     df = pd.DataFrame(data)
+
+    scenario_effects = None
+    if scenario_config is not None:
+        scenario_effects = ScenarioEffects(
+            features,
+            scenario,
+            scenario_config,
+            rng=np.random.default_rng(random_state),
+        )
+
+    correlation_adjuster = None
+    if correlation_config is not None:
+        correlation_adjuster = CorrelationAdjuster(features, correlation_config)
+
+    if scenario_effects or correlation_adjuster:
+        col_positions = {col: idx for idx, col in enumerate(df.columns)}
+        values = df.values
+        for idx in range(len(df)):
+            row = {col: values[idx, col_positions[col]] for col in df.columns}
+            if scenario_effects:
+                row = scenario_effects.apply(row)
+            if correlation_adjuster:
+                row = correlation_adjuster.apply(row)
+            for col, pos in col_positions.items():
+                values[idx, pos] = row[col]
 
     # Track invalid indices for each feature
     invalid_indices_dict = {}

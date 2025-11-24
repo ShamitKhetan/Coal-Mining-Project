@@ -12,6 +12,8 @@ from typing import Dict, Any, Iterable, Optional
 
 import numpy as np
 
+from .scenario_effects import ScenarioEffects, CorrelationAdjuster
+
 
 class StatefulSensorSimulator:
     """Stateful simulator maintaining per-feature drift and global stuck state."""
@@ -22,15 +24,36 @@ class StatefulSensorSimulator:
         noise_config: Dict[str, Any],
         *,
         random_state: Optional[int] = None,
+        scenario: str = "normal",
+        scenario_config: Optional[Dict[str, Any]] = None,
+        correlation_config: Optional[Dict[str, Any]] = None,
+        tick_minutes: Optional[float] = None,
     ) -> None:
+        """Initialise RNG, per-feature state, and optional scenario/correlation helpers."""
         self.features = features
         self.noise_config = noise_config
         self.rng = np.random.default_rng(random_state)
         self.per_feature = {name: {"drift": 0.0, "last_value": None} for name in features}
         self.stuck_remaining = 0
         self.stuck_row: Optional[Dict[str, Any]] = None
+        self.tick = 0
+
+        self.scenario_effects: Optional[ScenarioEffects] = None
+        if scenario_config is not None:
+            self.scenario_effects = ScenarioEffects(
+                features,
+                scenario,
+                scenario_config,
+                rng=self.rng,
+                tick_minutes_override=tick_minutes,
+            )
+
+        self.correlation_adjuster: Optional[CorrelationAdjuster] = None
+        if correlation_config is not None:
+            self.correlation_adjuster = CorrelationAdjuster(features, correlation_config)
 
     def _step_feature(self, name: str) -> float:
+        """Generate one feature reading with per-feature noise and drift applied."""
         ranges = self.features[name]
         use_safe = self.rng.random() < 0.8
         base = float(self.rng.uniform(*(ranges["safe"] if use_safe else ranges["unsafe"])) )
@@ -82,6 +105,7 @@ class StatefulSensorSimulator:
         return base
 
     def _apply_missing_and_invalid(self, row: Dict[str, Any]) -> Dict[str, Any]:
+        """Inject missing values and string invalids according to each feature's config."""
         updated = dict(row)
         for feat, cfg in self.noise_config.items():
             if feat == "global":
@@ -124,6 +148,7 @@ class StatefulSensorSimulator:
         return updated
 
     def next_row(self) -> Dict[str, Any]:
+        """Produce the next simulated reading row, preserving stuck sequences."""
         # Return a stuck row if within stuck duration
         if self.stuck_remaining > 0 and self.stuck_row is not None:
             self.stuck_remaining -= 1
@@ -131,6 +156,15 @@ class StatefulSensorSimulator:
 
         # Generate a fresh row
         row = {feat: self._step_feature(feat) for feat in self.features}
+
+        if self.scenario_effects:
+            row = self.scenario_effects.apply(row, tick=self.tick)
+
+        if self.correlation_adjuster:
+            row = self.correlation_adjuster.apply(row)
+
+        self.tick += 1
+
         row = self._apply_missing_and_invalid(row)
 
         # Possibly enter global stuck state starting next tick

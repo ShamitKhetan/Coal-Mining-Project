@@ -7,7 +7,9 @@ from .config_loader import (
     load_features_config,
     load_noise_config,
     create_default_noise_config,
-    validate_noise_config
+    validate_noise_config,
+    load_scenarios_config,
+    load_correlations_config
 )
 
 from .dataset_generator import (
@@ -31,6 +33,8 @@ __all__ = [
     'load_noise_config',
     'create_default_noise_config',
     'validate_noise_config',
+    'load_scenarios_config',
+    'load_correlations_config',
     
     # Generator functions
     'generate_dataset',
