@@ -20,7 +20,7 @@ from src import (
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate coal mine datasets")
-    parser.add_argument("--n-samples", type=int, default=100000, help="Number of rows to generate")
+    parser.add_argument("--n-samples", type=int, default=5000, help="Number of rows to generate")
     parser.add_argument("--random-state", type=int, default=42, help="Random seed")
     parser.add_argument("--scenario", default="normal", help="Scenario name to simulate")
     parser.add_argument("--features", default="config/features.json", help="Features config path")
@@ -84,10 +84,18 @@ def main():
 
     print("\nGenerating visualizations...")
     print("Plotting clean dataset distribution...")
-    plot_dataset(df_clean, title="Clean Dataset Distribution")
+    plot_dataset(
+        df_clean,
+        title="Clean Dataset Distribution",
+        scenario=args.scenario,
+    )
 
     print("Plotting noisy dataset distribution...")
-    plot_dataset(df_noisy, title="Noisy Dataset Distribution")
+    plot_dataset(
+        df_noisy,
+        title="Noisy Dataset Distribution",
+        scenario=args.scenario,
+    )
 
     print("\n" + "=" * 60)
     print("Dataset generation complete!")

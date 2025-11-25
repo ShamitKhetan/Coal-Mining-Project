@@ -10,7 +10,7 @@
     },
     "ventilation_failure": {
         "inherits": "normal",
-        "gas_rise_pct_per_hour": 0.08,
+        "gas_rise_pct_per_hour": 0.01,
         "temperature_rise_per_hour": 0.15,
         "humidity_rise_per_hour": -0.04
     },

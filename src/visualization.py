@@ -8,7 +8,48 @@ import seaborn as sns
 import pandas as pd
 
 
-def plot_dataset(df, title="Dataset Distribution", figsize=(16, 12)):
+# Scenario-specific highlight settings for plotting.
+SCENARIO_HIGHLIGHTS = {
+    "normal": {
+        "features": set(),
+        "highlight_color": "#d62728",
+        "default_color": "steelblue",
+    },
+    "ventilation_failure": {
+        "features": {
+            "CH4",
+            "CO",
+            "CO2",
+            "H2S",
+            "SO2",
+            "NH3",
+            "NO",
+            "NO2",
+            "Temperature",
+            "Humidity",
+        },
+        "highlight_color": "#ff7f0e",
+        "default_color": "steelblue",
+    },
+    "methane_leak": {
+        "features": {"CH4", "CO2", "CO", "PM2.5", "PM10"},
+        "highlight_color": "#e41a1c",
+        "default_color": "steelblue",
+    },
+    "combustion": {
+        "features": {"CO", "CO2", "PM2.5", "PM10", "Temperature", "Humidity", "NO", "NO2"},
+        "highlight_color": "#8c564b",
+        "default_color": "steelblue",
+    },
+    "dust_event": {
+        "features": {"PM2.5", "PM10", "CO", "NO", "NO2", "Humidity", "Temperature"},
+        "highlight_color": "#9467bd",
+        "default_color": "steelblue",
+    },
+}
+
+
+def plot_dataset(df, title="Dataset Distribution", figsize=(16, 12), scenario=None):
     """
     Plot histograms for all features in the dataset.
     
@@ -16,6 +57,7 @@ def plot_dataset(df, title="Dataset Distribution", figsize=(16, 12)):
         df: DataFrame with sensor data
         title: Title for the plot
         figsize: Figure size as (width, height)
+        scenario: Optional scenario name controlling highlight colors
     """
     # Convert to numeric for plotting, coercing strings to NaN
     df_numeric = df.apply(pd.to_numeric, errors='coerce')
@@ -28,9 +70,17 @@ def plot_dataset(df, title="Dataset Distribution", figsize=(16, 12)):
     plt.figure(figsize=figsize)
     plt.suptitle(title, fontsize=16, y=0.995)
     
+    highlight_cfg = SCENARIO_HIGHLIGHTS.get(
+        scenario, {"features": set(), "highlight_color": "#ff4d4f", "default_color": "steelblue"}
+    )
+    highlight_features = highlight_cfg["features"]
+    highlight_color = highlight_cfg["highlight_color"]
+    default_color = highlight_cfg["default_color"]
+
     for i, feature in enumerate(features, 1):
         plt.subplot(n_rows, n_cols, i)
-        sns.histplot(df_numeric[feature], bins=30, kde=True, color="steelblue")
+        color = highlight_color if feature in highlight_features else default_color
+        sns.histplot(df_numeric[feature], bins=30, kde=True, color=color)
         plt.title(f"Distribution of {feature}")
         plt.xlabel(feature)
         plt.ylabel("Count")
